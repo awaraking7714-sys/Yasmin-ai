@@ -1,9 +1,10 @@
-name: Build Android APK
+name: Build Yesmin AI APK
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
 
 jobs:
   build:
@@ -15,27 +16,29 @@ jobs:
 
       - name: Unzip Project Files
         run: |
+          # Agar zip ka naam Yesmin-ai.zip hai toh yehi rahega
           unzip -o Yasmin-ai.zip -d extracted_project
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: 'temurin'
           java-version: '17'
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.10.2'
-
-      - name: Generate Gradle Wrapper
-        run: |
-          cd extracted_project
-          gradle wrapper
 
       - name: Build APK with Gradle
         run: |
+          # Project folder ke andar move karein
           cd extracted_project
+          
+          # Agar gradlew file pehle se nahi hai, tab gradle wrapper generate karein
+          if [ ! -f "gradlew" ]; then
+            gradle wrapper --gradle-version 8.10.2
+          fi
+          
+          # Permissions set karein aur debug build banayein
           chmod +x gradlew
           ./gradlew assembleDebug
 
@@ -45,3 +48,4 @@ jobs:
           name: Yesmin-AI-APK
           path: extracted_project/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+          
